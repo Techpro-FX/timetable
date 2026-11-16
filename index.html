@@ -1,0 +1,232 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Séances à venir</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&family=Open+Sans+Condensed:wght@700&display=swap">
+<style>
+  :root {
+    --bar: #425760;
+    --bar-text: #e8eef0;
+    --bar-text-active: #ffffff;
+    --accent: #6db33f;
+    --page: #ffffff;
+    --day-band: #e9eaec;
+    --day-text: #3b4246;
+    --card-border: #c4c9cc;
+    --card-text: #333a3d;
+    --stripe: #e8352b;
+    --link: #1f5f6b;
+    --btn-bg: #ececec;
+    --btn-border: #cfd2d4;
+    --head-font: "Open Sans Condensed", "Arial Narrow", "Open Sans", sans-serif;
+    --body-font: "Open Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+    color-scheme: light;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; }
+  body {
+    background: var(--page);
+    color: var(--card-text);
+    font-family: var(--body-font);
+    font-size: 13px;
+    min-height: 100vh;
+  }
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0 0 auto;
+    height: env(safe-area-inset-top, 0px);
+    background: var(--bar);
+    z-index: 10;
+  }
+  .wrap {
+    padding-left: max(16px, env(safe-area-inset-left, 0px));
+    padding-right: max(16px, env(safe-area-inset-right, 0px));
+  }
+  header {
+    position: sticky;
+    top: env(safe-area-inset-top, 0px);
+    z-index: 9;
+    background: var(--bar);
+    color: var(--bar-text);
+    box-shadow: 0 2px 3px rgba(0, 0, 0, 0.35);
+  }
+  .menu-row { height: 38px; display: flex; align-items: center; }
+  .burger {
+    background: none; border: 0; padding: 8px 8px 8px 0; cursor: pointer;
+    display: grid; gap: 4px; width: 30px;
+  }
+  .burger span { display: block; height: 2px; background: var(--bar-text-active); border-radius: 1px; }
+  .tabs { display: flex; overflow-x: auto; scrollbar-width: none; }
+  .tabs::-webkit-scrollbar { display: none; }
+  .tab {
+    flex: none; background: none; border: 0; border-bottom: 3px solid transparent;
+    color: var(--bar-text); font: 400 13.5px/1 var(--body-font);
+    padding: 10px 14px 10px 0; margin-right: 14px; cursor: pointer; white-space: nowrap;
+  }
+  .tab[aria-selected="true"] { color: var(--bar-text-active); border-bottom-color: var(--accent); }
+  .menu-row { justify-content: space-between; }
+  .profile { display: flex; align-items: center; gap: 8px; min-width: 0; }
+  .pname { color: var(--bar-text-active); font-size: 13px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .avatar { width: 28px; height: 28px; flex: none; display: block; }
+  .tab:focus-visible, .burger:focus-visible, .more:focus-visible, .back:focus-visible {
+    outline: 3px solid var(--accent); outline-offset: 2px;
+  }
+  .day-band { background: var(--day-band); padding-block: 8px; }
+  .day-band h2 {
+    margin: 0; font: 700 21px/1.1 var(--head-font); color: var(--day-text);
+    letter-spacing: -0.1px;
+  }
+  .cards { display: grid; gap: 9px; padding-block: 10px; }
+  .card {
+    border: 1px solid var(--card-border);
+    border-left: 5px solid var(--stripe);
+    border-radius: 3px;
+    background: var(--page);
+    padding: 6px 10px 7px 9px;
+    min-width: 0;
+  }
+  .card .t {
+    margin: 0; font-weight: 700; font-size: 13px; line-height: 1.35;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .card .g { margin: 0; font-size: 13px; line-height: 1.35; }
+  .more-wrap { padding-block: 14px 36px; }
+  .more {
+    width: 100%; background: var(--btn-bg); border: 1px solid var(--btn-border);
+    border-radius: 3px; padding: 10px; font: 400 15px/1.2 var(--body-font);
+    color: var(--link); cursor: pointer; box-shadow: 0 1px 2px rgba(0,0,0,0.12);
+  }
+  .empty { padding-block: 28px; color: #6a7276; font-size: 13px; }
+  .week-title { padding-block: 10px 2px; }
+  .week-title h2 { margin: 0; font: 700 20px/1.15 var(--head-font); color: var(--day-text); }
+  .week-title p { margin: 4px 0 0; color: #5d676b; font-size: 12px; }
+  .grid-scroll { overflow-x: auto; padding-block: 8px 6px; }
+  table.week { border-collapse: separate; border-spacing: 4px; min-width: 560px; width: 100%; table-layout: fixed; }
+  table.week th {
+    background: var(--day-band); color: var(--day-text);
+    font: 700 15px/1.2 var(--head-font); padding: 6px 6px; text-align: left; border-radius: 3px;
+  }
+  table.week th.hour { background: transparent; width: 70px; }
+  table.week td.hour {
+    font-weight: 700; font-size: 11px; color: var(--day-text); vertical-align: top; padding: 7px 3px 0 0;
+    font-variant-numeric: tabular-nums;
+  }
+  table.week td.slot {
+    border: 1px solid var(--card-border); border-left: 4px solid var(--stripe);
+    border-radius: 3px; padding: 5px 7px; vertical-align: top; font-size: 11px; line-height: 1.35;
+  }
+  table.week td.slot b { display: block; margin-bottom: 2px; }
+  .back-wrap { padding-block: 12px 36px; }
+  .back {
+    width: 100%; background: var(--btn-bg); border: 1px solid var(--btn-border);
+    border-radius: 3px; padding: 10px; font: 400 15px/1.2 var(--body-font);
+    color: var(--link); cursor: pointer; box-shadow: 0 1px 2px rgba(0,0,0,0.12);
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap menu-row">
+    <button class="burger" type="button" aria-label="Menu" id="burger"><span></span><span></span><span></span></button>
+    <div class="profile">
+      <span class="pname">Umar Majeed</span>
+      <svg class="avatar" viewBox="0 0 40 40" role="img" aria-label="Aucune photo de profil" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="20" cy="20" r="20" fill="#aab3b7"/>
+        <circle cx="20" cy="15.5" r="6.5" fill="#e6eaec"/>
+        <path d="M6.5 34.5c1.2-7.2 7-10.8 13.5-10.8s12.3 3.6 13.5 10.8A20 20 0 0 1 20 40a20 20 0 0 1-13.5-5.5z" fill="#e6eaec"/>
+      </svg>
+    </div>
+  </div>
+  <div class="wrap">
+    <div class="tabs" role="tablist" id="tabs">
+      <button class="tab" role="tab" id="tab-news" aria-selected="false" data-view="news">Fil d'actualités</button>
+      <button class="tab" role="tab" id="tab-seances" aria-selected="true" data-view="seances">Séances à venir</button>
+      <button class="tab" role="tab" id="tab-travail" aria-selected="false" data-view="travail">Travail à faire</button>
+      <button class="tab" role="tab" id="tab-eval" aria-selected="false" data-view="eval">Evaluations</button>
+    </div>
+  </div>
+</header>
+
+<main id="main"></main>
+
+<script>
+  var DAYS = [
+    { name: "Lundi 16 novembre 2026", short: "Lun 16" },
+    { name: "Mardi 17 novembre 2026", short: "Mar 17" },
+    { name: "Mercredi 18 novembre 2026", short: "Mer 18" },
+    { name: "Jeudi 19 novembre 2026", short: "Jeu 19" },
+    { name: "Vendredi 20 novembre 2026", short: "Ven 20" }
+  ];
+  var SLOTS = [
+    { time: "08h40 - 12h10", title: "77 MISE A DISPOSITION DE L'ENTREP…", group: "2 EPC B" },
+    { time: "12h55 - 16h25", title: "77 MISE A DISPOSITION DE L'ENTREP…", group: "2 EPC B" }
+  ];
+  var main = document.getElementById("main");
+
+  function esc(s) { return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/"/g, "&quot;"); }
+
+  function renderSeances() {
+    var h = "";
+    DAYS.forEach(function (d) {
+      h += '<section><div class="day-band"><div class="wrap"><h2>' + esc(d.name) + '</h2></div></div>';
+      h += '<div class="wrap cards">';
+      SLOTS.forEach(function (s) {
+        h += '<article class="card"><p class="t">' + esc(s.time + " : " + s.title) + '</p><p class="g">' + esc(s.group) + '</p></article>';
+      });
+      h += '</div></section>';
+    });
+    h += '<div class="wrap more-wrap"><button class="more" type="button" id="more">Consulter le planning semaine</button></div>';
+    return h;
+  }
+
+  function renderWeek() {
+    var h = '<div class="wrap week-title"><h2>Planning de la semaine</h2><p>Du lundi 16 au vendredi 20 novembre 2026</p></div>';
+    h += '<div class="wrap"><div class="grid-scroll"><table class="week"><thead><tr><th class="hour"></th>';
+    DAYS.forEach(function (d) { h += '<th>' + esc(d.short) + '</th>'; });
+    h += '</tr></thead><tbody>';
+    SLOTS.forEach(function (s) {
+      h += '<tr><td class="hour">' + esc(s.time.replace(" - ", " – ")) + '</td>';
+      DAYS.forEach(function () {
+        h += '<td class="slot"><b>' + esc(s.title) + '</b>' + esc(s.group) + '</td>';
+      });
+      h += '</tr>';
+    });
+    h += '</tbody></table></div></div>';
+    h += '<div class="wrap back-wrap"><button class="back" type="button" id="back">Retour aux séances à venir</button></div>';
+    return h;
+  }
+
+  function renderEmpty(msg) { return '<div class="wrap empty">' + esc(msg) + '</div>'; }
+
+  function show(view) {
+    var html = "";
+    if (view === "seances") html = renderSeances();
+    else if (view === "week") html = renderWeek();
+    else if (view === "news") html = renderEmpty("Aucune actualité pour le moment.");
+    else if (view === "travail") html = renderEmpty("Aucun travail à faire pour le moment.");
+    else if (view === "eval") html = renderEmpty("Aucune évaluation pour le moment.");
+    main.innerHTML = '<div class="view">' + html + '</div>';
+    var tabView = view === "week" ? "seances" : view;
+    document.querySelectorAll(".tab").forEach(function (t) {
+      t.setAttribute("aria-selected", t.getAttribute("data-view") === tabView ? "true" : "false");
+    });
+    var more = document.getElementById("more");
+    if (more) more.addEventListener("click", function () { show("week"); window.scrollTo(0, 0); });
+    var back = document.getElementById("back");
+    if (back) back.addEventListener("click", function () { show("seances"); window.scrollTo(0, 0); });
+  }
+
+  document.getElementById("tabs").addEventListener("click", function (e) {
+    var t = e.target.closest(".tab");
+    if (t) show(t.getAttribute("data-view"));
+  });
+
+  show("seances");
+</script>
+
+</body>
+</html>
